@@ -16,7 +16,7 @@ namespace mcal
   {
     typedef void config_type;
 
-    void init(config_type *);
+    void init(const config_type *);
 
     inline void enable_all() { asm volatile ("sei"); }
     inline void disable_all() { asm volatile ("cli"); }

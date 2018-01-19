@@ -3,6 +3,34 @@
 \#*\#
 \#*#
 
+# Kicad
+# temp files
+*.000
+*.bak
+*.bck
+*.kicad_pcb-bak
+*-cache.lib
+# *-rescue.lib
+ftp-lib-table
+
+_autosave-*
+*.tmp
+
+# Netlist files
+*.net
+
+# Autorouter
+*.dsn
+*.ses
+
+# Exported BOM files
+*.xml
+*.csv
+
+# Extra files
+*.bak
+
+
 # Prerequisites
 *.d
 
@@ -32,6 +60,7 @@
 *.lib
 
 # Executables
+*.elf
 *.exe
 *.out
 *.app

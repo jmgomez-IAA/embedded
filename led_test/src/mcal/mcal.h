@@ -11,6 +11,7 @@
 #define _MCAL_EMBEDDED_2018_
 
 #include <mcal_irq.h>
+#include <mcal_led.h>
 
 namespace mcal
 {
