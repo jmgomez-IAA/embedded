@@ -1,6 +1,6 @@
 
 /**
- * @file mcal_led.h
+ * @file mcal_led.cpp
  * @brief Control a led on portB4.
  * @description Abstraction layer to control a led on portb4.
  * @author Juan Manuel Gomez Lopez <jmgomez@iaa.es>

@@ -23,10 +23,10 @@ int main()
   // Initialize the mcal.
   mcal::init();
 
-  // Toggle led0 forever.
+  // Toggle led1 forever.
   for(;;)
   {
-    led_b4.toggle();
+    led_b1.toggle();
 
     // Wait 1 second in a blocking delay.
     timer_type::blocking_delay(timer_type::seconds(1U));

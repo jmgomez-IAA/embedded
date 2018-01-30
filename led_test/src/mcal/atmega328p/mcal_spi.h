@@ -10,6 +10,8 @@
 #ifndef _MCAL_SPI_EMBEDDED_H_
   #define _MCAL_SPI_EMBEDDED_H_
 
+#include <cstdint>
+
 namespace mcal
 {
   namespace spi
