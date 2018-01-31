@@ -13,6 +13,8 @@
 #include <chrono>
 #include <cstdint>
 
+//extern "C" void TIMER0_OVF_vect(void);
+
 namespace util
 {
   template <typename unsigned_tick_type>
@@ -31,8 +33,10 @@ namespace mcal
     class secure final
     {
       
-      //    private:
+      //      friend void TIMER0_OVF_vect(void);
+      //   private:
       static value_type get_time_elapsed();
+      //   public:
       friend std::chrono::high_resolution_clock::time_point std::chrono::high_resolution_clock::now();
       
       template <typename unsigned_tick_type>

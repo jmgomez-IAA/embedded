@@ -95,7 +95,7 @@ mcal::spi::spi_communication::~spi_communication()
 bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
 {
 
-  if ( send_is_active == false){
+  //if ( send_is_active == false){
     disable_rx_tx_interrupt();
     send_is_active = true;
 
@@ -112,7 +112,7 @@ bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
                       test_spi_value>::reg_set();    
 
     enable_rx_tx_interrupt();
-  }
+    //}
 
   return send_is_active;
 }
@@ -135,10 +135,10 @@ bool mcal::spi::spi_communication::busy() const
 //bool select_channel(const std::uint8_t ch);
 
 	
-extern "C" void SPI_STC_vect(void)  __attribute__ ((signal));
+//extern "C" void SPI_STC_vect(void)  __attribute__ ((signal));
 
 //ISR(SPI_STC_vect)
-void SPI_STC_vect(void)
+ISR(SPI_STC_vect)
 {
  
   //SS should be set to one.
@@ -148,5 +148,6 @@ void SPI_STC_vect(void)
                     2U>::bit_set();
 
   disable_rx_tx_interrupt();
-  //mcal::spi::spi_communication::send_is_active = false;
+
+  //  mcal::spi::the_spi.send_is_active = false;
 }

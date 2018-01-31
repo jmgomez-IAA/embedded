@@ -27,8 +27,8 @@ int main()
   for(;;)
   {
     
-    if (mcal::spi::the_spi.busy())
-      led_b1.toggle();
+    // if (! mcal::spi::the_spi.busy())
+            led_b1.toggle();
 
     mcal::spi::the_spi.send(0x1);
 

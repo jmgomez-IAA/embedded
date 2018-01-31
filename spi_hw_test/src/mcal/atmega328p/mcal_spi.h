@@ -11,24 +11,24 @@
   #define _MCAL_SPI_EMBEDDED_H_
 
 #include <cstdint>
+//#include <util/utility/util_circular_buffer.h>
 
 //    extern "C" void SPI_STC_vect(void)  __attribute__ ((signal));
+
+extern "C" void SPI_STC_vect(void) __attribute__((signal, used, externally_visible));
 
 namespace mcal
 {
   namespace spi
   {
-
-
     typedef void config_type;
     typedef std::uint32_t value_type;
-
     inline void init(const config_type*){};
 
     class spi_communication
     {
     public:
-      //typedef circular_buffer<std::uint8_t, 16U> data_type;
+      //      typedef circular_buffer<std::uint8_t, 4U> data_type;
       spi_communication();
       ~spi_communication();
       // The virtual communication interface.
@@ -40,20 +40,22 @@ namespace mcal
       //bool idle() const;
       // Specific channel select for SPI(TM).
       // bool select_channel(const std::uint8_t ch);
-
       bool busy() const;
+
+      //ISR for transmission end.      
+      friend void ::SPI_STC_vect(void);
+
     private:
       // Private class details.
       volatile bool send_is_active;
       std::uint8_t channel;
-      // Friend interrupt service routine for Rx/Tx.
-      //      friend void :: __vector_spi_rx_tx_isr();
-      
-      
-      //friend void SPI_STC_vect(void);
     };
 
-    extern spi_communication the_spi;  
+    //    typedef struct spi_communication spi_communication;
+    
+    //    extern "C" {
+      extern spi_communication the_spi;
+      //    }
   }
 }
 
