@@ -95,11 +95,10 @@ mcal::spi::spi_communication::~spi_communication()
 bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
 {
 
-  //if ( send_is_active == false){
+  if ( send_is_active == false){
     disable_rx_tx_interrupt();
     send_is_active = true;
 
-    //    bit_clr()
     mcal::reg::access<std::uint8_t,
                       std::uint8_t,
                       mcal::reg::portb,
@@ -112,7 +111,15 @@ bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
                       test_spi_value>::reg_set();    
 
     enable_rx_tx_interrupt();
-    //}
+    //Might not be necessary.
+    //mcal::irq::enable_all()
+  }
+  else
+  {
+    send_buffer.in(byte_to_send);
+    //Might not be necessary.
+    //mcal::irq::enable_all()
+  }
 
   return send_is_active;
 }
@@ -135,10 +142,8 @@ bool mcal::spi::spi_communication::busy() const
 //bool select_channel(const std::uint8_t ch);
 
 	
-//extern "C" void SPI_STC_vect(void)  __attribute__ ((signal));
-
 //ISR(SPI_STC_vect)
-ISR(SPI_STC_vect)
+void __vector_17()
 {
  
   //SS should be set to one.
@@ -147,7 +152,19 @@ ISR(SPI_STC_vect)
                     mcal::reg::portb,
                     2U>::bit_set();
 
-  disable_rx_tx_interrupt();
+  if( ! mcal::spi::the_spi.send_buffer.empty() )
+  {
+    uint8_t a = mcal::spi::the_spi.send_buffer.out();
+    constexpr std::uint8_t test_spi_value = 0x81;
+    mcal::reg::access<std::uint8_t,
+                      std::uint8_t,
+                      mcal::reg::spdr,
+                      test_spi_value>::reg_set();    
+  }
+  else
+  {
+    disable_rx_tx_interrupt();
+  }
 
-  //  mcal::spi::the_spi.send_is_active = false;
+  mcal::spi::the_spi.send_is_active = false;
 }

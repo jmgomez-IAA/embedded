@@ -31,6 +31,7 @@ int main()
             led_b1.toggle();
 
     mcal::spi::the_spi.send(0x1);
+    mcal::spi::the_spi.send(0x1);
 
     // Wait 1 second in a blocking delay.
     timer_type::blocking_delay(timer_type::seconds(1U));
