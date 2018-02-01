@@ -11,9 +11,8 @@
   #define _MCAL_SPI_EMBEDDED_H_
 
 #include <cstdint>
+#include <cstddef>
 #include <util/utility/util_circular_buffer.h>
-
-//    extern "C" void SPI_STC_vect(void)  __attribute__ ((signal));
 
 //extern "C" void SPI_STC_vect(void) __attribute__((signal, used, externally_visible));
 extern "C" void __vector_17(void) __attribute__((signal, used, externally_visible));
@@ -30,36 +29,38 @@ namespace mcal
     {
     public:
       typedef util::circular_buffer<std::uint8_t, 16U> buffer_type;
+      typedef std::size_t size_type;
       spi_communication();
       ~spi_communication();
+
       // The virtual communication interface.
       bool send(const std::uint8_t byte_to_send);
+      size_type recv_ready() const;
+      bool recv(std::uint8_t& byte_to_recv);
+      bool idle() const;
+
       //bool send(const data_type& data_to_send);
-      //      bool recv(std::uint8_t& byte_to_recv);
       //bool recv(data_type& data_to_recv);
-      //      std::size_t recv_ready() const;
-      //bool idle() const;
+
+
       // Specific channel select for SPI(TM).
       // bool select_channel(const std::uint8_t ch);
       bool busy() const;
 
       //ISR for transmission end.      
-      //      friend void ::SPI_STC_vect(void);
+      //friend void ::SPI_STC_vect(void);
       friend void ::__vector_17(void); 
 
     private:
       // Private class details.
       buffer_type send_buffer;
+      buffer_type recv_buffer;
 
       volatile bool send_is_active;
       std::uint8_t channel;
     };
 
-    //    typedef struct spi_communication spi_communication;
-    
-    //    extern "C" {
-      extern spi_communication the_spi;
-      //    }
+    extern spi_communication the_spi;
   }
 }
 

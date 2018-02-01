@@ -65,13 +65,17 @@ mcal::spi::spi_communication::spi_communication() : send_is_active(false),
   mcal::reg::access<std::uint8_t,
                       std::uint8_t,
                       mcal::reg::ddrb,
-                      pdir_mask>::reg_or();
+                      pdir_mask>::reg_set();
 
   //SS should be set to one.
+  //Enable pull-up on MISO.
+  constexpr std::uint8_t defout_mask = mcal::reg::bval2
+      | mcal::reg::bval4;
+
   mcal::reg::access<std::uint8_t,
                       std::uint8_t,
                       mcal::reg::portb,
-                      pdir_mask>::reg_or();
+                      defout_mask>::reg_or();
   
   // Enable spi as master mode, clock idle to high, etc.
   // Set the spi clock to f_osc/64 = (1/4)MHz.
@@ -92,6 +96,33 @@ mcal::spi::spi_communication::~spi_communication()
 {
 };
 
+/*
+* Might be conflictive if ISR at the same of read size.
+*/
+
+mcal::spi::spi_communication::size_type mcal::spi::spi_communication::recv_ready() const
+{
+  disable_rx_tx_interrupt();
+
+  // Get the count of bytes in the receive buffer.
+  const size_type count = recv_buffer.size();
+
+  enable_rx_tx_interrupt();
+
+  return count;
+}
+
+bool mcal::spi::spi_communication::recv(std::uint8_t& byte_to_recv)
+{
+  disable_rx_tx_interrupt();
+
+  byte_to_recv = recv_buffer.out();
+
+  enable_rx_tx_interrupt();
+
+  return true;
+}
+
 bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
 {
 
@@ -104,11 +135,7 @@ bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
                       mcal::reg::portb,
                       2U>::bit_clr();
 
-    constexpr std::uint8_t test_spi_value = 0xA5;
-    mcal::reg::access<std::uint8_t,
-                      std::uint8_t,
-                      mcal::reg::spdr,
-                      test_spi_value>::reg_set();    
+    mcal::reg::dynamic_access<std::uint8_t, std::uint8_t>::reg_set(mcal::reg::spdr, byte_to_send);
 
     enable_rx_tx_interrupt();
     //Might not be necessary.
@@ -124,7 +151,7 @@ bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
   return send_is_active;
 }
 
-/*
+
 bool mcal::spi::spi_communication::idle() const
 {
   disable_rx_tx_interrupt();
@@ -133,7 +160,8 @@ bool mcal::spi::spi_communication::idle() const
 
   return (is_active == false); 
 }
-*/
+
+
 bool mcal::spi::spi_communication::busy() const
 {
   return send_is_active;
@@ -145,26 +173,27 @@ bool mcal::spi::spi_communication::busy() const
 //ISR(SPI_STC_vect)
 void __vector_17()
 {
- 
-  //SS should be set to one.
-  mcal::reg::access<std::uint8_t,
-                    std::uint8_t,
-                    mcal::reg::portb,
-                    2U>::bit_set();
+  //Something received?
+  const std::uint8_t byte_to_recv = mcal::reg::access<std::uint8_t, 
+                                                        std::uint8_t, 
+                                                        mcal::reg::spdr>::reg_get();
+  mcal::spi::the_spi.recv_buffer.in(byte_to_recv);
 
-  if( ! mcal::spi::the_spi.send_buffer.empty() )
+  if( mcal::spi::the_spi.send_buffer.empty() )
   {
-    uint8_t a = mcal::spi::the_spi.send_buffer.out();
-    constexpr std::uint8_t test_spi_value = 0x81;
+    disable_rx_tx_interrupt();
+    mcal::spi::the_spi.send_is_active = false;
+
+    //SS should be set to one.
     mcal::reg::access<std::uint8_t,
                       std::uint8_t,
-                      mcal::reg::spdr,
-                      test_spi_value>::reg_set();    
+                      mcal::reg::portb,
+                      2U>::bit_set();
   }
   else
   {
-    disable_rx_tx_interrupt();
+    uint8_t byte_to_send = mcal::spi::the_spi.send_buffer.out();
+    mcal::reg::dynamic_access<std::uint8_t, std::uint8_t>::reg_set(mcal::reg::spdr, byte_to_send);
   }
 
-  mcal::spi::the_spi.send_is_active = false;
 }

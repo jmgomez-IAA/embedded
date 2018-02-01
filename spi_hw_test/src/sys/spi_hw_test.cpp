@@ -24,15 +24,15 @@ int main()
   mcal::init();
 
   // Toggle led1 forever.
+led_b1.toggle();
   for(;;)
   {
     
-    // if (! mcal::spi::the_spi.busy())
-            led_b1.toggle();
+    //    if (! mcal::spi::the_spi.busy())    
 
-    mcal::spi::the_spi.send(0x1);
-    mcal::spi::the_spi.send(0x1);
-
+    //    mcal::spi::the_spi.send(0xFF);
+    mcal::spi::the_spi.send(0xE0);
+    mcal::spi::the_spi.send(0x00);
     // Wait 1 second in a blocking delay.
     timer_type::blocking_delay(timer_type::seconds(1U));
   }
