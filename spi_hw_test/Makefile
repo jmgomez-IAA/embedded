@@ -15,12 +15,12 @@ CSTANDARD	= -std=c++11
 CPPDEFS		= -DF_CPU=$(F_CPU)UL -mmcu=$(MCU)
 CFLAGS		= -Wall -Wextra -pedantic -DF_CPU=$(F_CPU)UL  -mmcu=$(MCU) -fsigned-char -O2 -fno-exceptions
 CPPFLAGS	= -std=c++11
-CINCLUDES	= -Isrc -Isrc/mcal/atmega328p -I. -Iutil/STL/
+CINCLUDES	= -Isrc -Isrc/mcal/atmega328p -I. -Iutil/STL/ -Isrc/hal/RF24
 
 #src/mcal/at85/mcal_cpu.cpp
 #bin/mcal_cpu.o
-SOURCES = src/mcal/mcal.cpp src/mcal/atmega328p/mcal_irq.cpp src/mcal/atmega328p/mcal_led.cpp src/mcal/atmega328p/mcal_gpt.cpp src/mcal/atmega328p/mcal_spi.cpp src/sys/spi_hw_test.cpp 
-OBJECTS = bin/mcal.o bin/mcal_irq.o bin/mcal_led.o bin/mcal_gpt.o bin/mcal_spi.o  bin/spi_hw_test.o
+SOURCES = src/mcal/mcal.cpp src/mcal/atmega328p/mcal_irq.cpp src/mcal/atmega328p/mcal_led.cpp src/mcal/atmega328p/mcal_gpt.cpp src/mcal/atmega328p/mcal_spi.cpp src/sys/spi_hw_test.cpp src/hal/RF24/RF24.cpp
+OBJECTS = bin/mcal.o bin/mcal_irq.o bin/mcal_led.o bin/mcal_gpt.o bin/mcal_spi.o bin/hal_rf24 bin/spi_hw_test.o
 
 all : spi_hw_test.elf
 
@@ -43,6 +43,12 @@ bin/mcal_gpt.o : src/mcal/atmega328p/mcal_gpt.cpp
 bin/mcal_spi.o : src/mcal/atmega328p/mcal_spi.cpp
 	echo "Compile  : mcal_gpt.cpp to bin/mcal_gpt.o"
 	$(COMPILE) -x c++ $(CFLAGS) $(CPPFLAGS) $(CINCLUDES) -c src/mcal/atmega328p/mcal_spi.cpp -o bin/mcal_spi.o
+
+## Build the RF24 Library for ATMega328p
+
+bin/hal_rf24.o : src/hal/RF24/RF24.cpp
+	echo "Compile  : Build RF24 library object."
+	$(COMPILE) -x c++ $(CFLAGS) $(CPPFLAGS) $(CINCLUDES) -c src/hal/RF24/RF24.cpp -o bin/hal_rf24.o
 
 bin/spi_hw_test.o : src/sys/spi_hw_test.cpp
 	echo "Compile  : Compile spi_hw_test.cpp"

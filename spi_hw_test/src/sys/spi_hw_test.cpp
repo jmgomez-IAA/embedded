@@ -9,6 +9,7 @@
 #ifndef _SPI_HW_TEST_EMBEDDED_2018_
 #define _SPI_HW_TEST_EMBEDDED_2018_
 
+#include <hal/hal.h>
 #include <mcal/mcal.h>
 #include <util/utility/util_time.h>
 
