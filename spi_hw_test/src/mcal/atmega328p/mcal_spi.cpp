@@ -9,12 +9,17 @@
 
 #include <mcal_cpu.h>
 #include <mcal_spi.h>
+//#include <mcal_port.h>
+//#include <mcal/mcal_port_base.h>
 #include <mcal_irq.h>
 #include <mcal_reg_access.h>
 #include <avr/interrupt.h>
 
 
 mcal::spi::spi_communication mcal::spi::the_spi;
+
+//const mcal::port::port_base cs_pin* = & mcal::port::portb2;
+
 
 namespace 
 {
@@ -62,11 +67,17 @@ mcal::spi::spi_communication::spi_communication() : send_is_active(false),
       | mcal::reg::bval5;
 
 
+  // OPTIMIZATION
+  // We should set port directions. If we change the port
+  // we should change this static initialization.
+  // Using a polimorphic class for port_base should make this code portable.
+  // mcal::port::portb2.set_direction_output();
   mcal::reg::access<std::uint8_t,
                       std::uint8_t,
                       mcal::reg::ddrb,
-                      pdir_mask>::reg_set();
+                      pdir_mask>::reg_or();
 
+  //  cs_pin->toggle_pin();
   //SS should be set to one.
   //Enable pull-up on MISO.
   constexpr std::uint8_t defout_mask = mcal::reg::bval2
@@ -130,10 +141,8 @@ bool mcal::spi::spi_communication::send(const std::uint8_t byte_to_send)
     disable_rx_tx_interrupt();
     send_is_active = true;
 
-    mcal::reg::access<std::uint8_t,
-                      std::uint8_t,
-                      mcal::reg::portb,
-                      2U>::bit_clr();
+    //Its better to do it out, to allow multiple slave.
+    //  mcal::port::portb2.set_pin_low();
 
     mcal::reg::dynamic_access<std::uint8_t, std::uint8_t>::reg_set(mcal::reg::spdr, byte_to_send);
 
@@ -185,14 +194,11 @@ void __vector_17()
     mcal::spi::the_spi.send_is_active = false;
 
     //SS should be set to one.
-    mcal::reg::access<std::uint8_t,
-                      std::uint8_t,
-                      mcal::reg::portb,
-                      2U>::bit_set();
+    //    mcal::port::portb2.set_pin_high();
   }
   else
   {
-    uint8_t byte_to_send = mcal::spi::the_spi.send_buffer.out();
+    const uint8_t byte_to_send = mcal::spi::the_spi.send_buffer.out();
     mcal::reg::dynamic_access<std::uint8_t, std::uint8_t>::reg_set(mcal::reg::spdr, byte_to_send);
   }
 

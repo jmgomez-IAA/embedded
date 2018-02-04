@@ -11,7 +11,7 @@
 #ifndef _HAL_EMBEDDED_2018_
 #define _HAL_EMBEDDED_2018_
 
-#include <RF24.h>
+#include <hal_rf24.h>
 
 namespace hal
 {

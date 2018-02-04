@@ -16,7 +16,8 @@
 
 //JM Definitions.
 #define __AVR_ATMega328p__
-#define __RF24_LINUX__
+//#define __RF24_LINUX__
+#define 
 
   /*** USER DEFINES:  ***/  
   //#define FAILURE_HANDLING

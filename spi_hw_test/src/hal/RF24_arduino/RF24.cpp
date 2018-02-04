@@ -10,49 +10,28 @@
 #include "RF24_config.h"
 #include "RF24.h"
 
+#include <mcal_port.h>
+
 /****************************************************************************/
 
+//Si pretendemos emplear esto debemos heredar con polimorfismo
+//de la clase PINPORT_Base que hara los toggle de los pines. De esta
+//forma cualquier mcal::port:: que creemos puede ser utilizado.
+
+// csn deberia manerjarlo SPI??
 void RF24::csn(bool mode)
 {
 
-#if defined (RF24_TINY)
-	if (ce_pin != csn_pin) {
-		digitalWrite(csn_pin,mode);
-	} 
-	else {
-		if (mode == HIGH) {
-			PORTB |= (1<<PINB2);  	// SCK->CSN HIGH
-			delayMicroseconds(100); // allow csn to settle.
-		} 
-		else {
-			PORTB &= ~(1<<PINB2);	// SCK->CSN LOW
-			delayMicroseconds(11);  // allow csn to settle
-		}
-	}
-	// Return, CSN toggle complete
-	return;
-	
-#elif defined(ARDUINO) && !defined (RF24_SPI_TRANSACTIONS)
-	// Minimum ideal SPI bus speed is 2x data rate
-	// If we assume 2Mbs data rate and 16Mhz clock, a
-	// divider of 4 is the minimum we want.
-	// CLK:BUS 8Mhz:2Mhz, 16Mhz:4Mhz, or 20Mhz:5Mhz
-	
-      #if !defined (SOFTSPI)	
-		_SPI.setBitOrder(MSBFIRST);
-		_SPI.setDataMode(SPI_MODE0);
-		_SPI.setClockDivider(SPI_CLOCK_DIV2);
-      #endif
-#elif defined (RF24_RPi)
-      if(!mode)
-	    _SPI.chipSelect(csn_pin);
-#endif
-
-#if !defined (RF24_LINUX)
-	digitalWrite(csn_pin,mode);
-	delayMicroseconds(csDelay);
-#endif
-
+  // Minimum ideal SPI bus speed is 2x data rate
+  // If we assume 2Mbs data rate and 16Mhz clock, a
+  // divider of 4 is the minimum we want.
+  // CLK:BUS 8Mhz:2Mhz, 16Mhz:4Mhz, or 20Mhz:5Mhz	
+  /*
+  digitalWrite(csn_pin,mode);
+  _SPI.setBitOrder(MSBFIRST);
+  _SPI.setDataMode(SPI_MODE0);
+  _SPI.setClockDivider(SPI_CLOCK_DIV2);
+*/
 }
 
 /****************************************************************************/
@@ -60,34 +39,76 @@ void RF24::csn(bool mode)
 void RF24::ce(bool level)
 {
   //Allow for 3-pin use on ATTiny
-  if (ce_pin != csn_pin) digitalWrite(ce_pin,level);
+  //  if (ce_pin != csn_pin) digitalWrite(ce_pin,level);
+
+  // This may go on constructor.
+  mcal::port::portd2.set_direction_output();
+
+  if (level)
+    mcal::port::portd2.set_pin_high();
+  else
+    mcal::port::portd2.set_pin_low();
 }
 
 /****************************************************************************/
 
   inline void RF24::beginTransaction() {
-    #if defined (RF24_SPI_TRANSACTIONS)
-    _SPI.beginTransaction(SPISettings(RF24_SPI_SPEED, MSBFIRST, SPI_MODE0));
-	#endif
-    csn(LOW);
+    //    #if defined (RF24_SPI_TRANSACTIONS)
+    //_SPI.beginTransaction(SPISettings(RF24_SPI_SPEED, MSBFIRST, SPI_MODE0));
+    //#endif
+    //csn(LOW);
   }
 
 /****************************************************************************/
 
-  inline void RF24::endTransaction() {
-    csn(HIGH);
-	#if defined (RF24_SPI_TRANSACTIONS)
-    _SPI.endTransaction();
-	#endif
-  }
+/*
+ * Wait for transfer complete.
+*/
+inline void RF24::endTransaction() {
+  //    csn(HIGH);
+  //#if defined (RF24_SPI_TRANSACTIONS)
+  //_SPI.endTransaction();
+  //#endif
+  while(_SPI.busy())
+    {
+    mcal:cpu::nop();
+    } 
+
+  //Should empty the receive FIFO of the SPI.
+}
 
 /****************************************************************************/
 
 uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
 {
   uint8_t status;
+  //We should verify receive buffer is empty. In other case, empty it.
 
-  #if defined (RF24_LINUX)
+  beginTransaction();
+  _SPI.send(reg);
+  for(uint8_t nbytes_to_receive = 0; nbytes_to_receive < len; ++nbytes_to_receive)
+    {
+      _SPI.send(0xFF);      
+    }
+  
+  //Wait for transfer to end.
+  // Using blocking waits reduce stall possibility.
+  while (_SPI.busy() )
+    {
+      mcal::cpu::nop();
+    }
+
+  status = _SPI.recv();
+  // Change this to empty full buffer 
+  // and compare with expected to verify errors.
+  for(uint8_t nbytes_to_receive = 0; nbytes_to_receive < len; ++nbytes_to_receive)
+    {
+      buf[nbytes_to_receive] = _SPI.recv();
+    }
+
+  endTransaction();
+  //  #if defined (RF24_LINUX)
+  /*
   beginTransaction(); //configures the spi settings for RPi, locks mutex and setting csn low
   uint8_t * prx = spi_rxbuff;
   uint8_t * ptx = spi_txbuff;
@@ -105,7 +126,7 @@ uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
   while ( --size ){ *buf++ = *prx++; } 
   endTransaction(); //unlocks mutex and setting csn high
 
-#else
+    //#else
 
   beginTransaction();
   status = _SPI.transfer( R_REGISTER | ( REGISTER_MASK & reg ) );
@@ -114,8 +135,8 @@ uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
   }
   endTransaction();
 
-#endif
-
+  //#endif
+  */
   return status;
 }
 
@@ -124,28 +145,10 @@ uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
 uint8_t RF24::read_register(uint8_t reg)
 {
   uint8_t result;
-  
-  #if defined (RF24_LINUX)
-	
-  beginTransaction();
-  
-  uint8_t * prx = spi_rxbuff;
-  uint8_t * ptx = spi_txbuff;	
-  *ptx++ = ( R_REGISTER | ( REGISTER_MASK & reg ) );
-  *ptx++ = RF24_NOP ; // Dummy operation, just for reading
-  
-  _SPI.transfernb( (char *) spi_txbuff, (char *) spi_rxbuff, 2);
-  result = *++prx;   // result is 2nd byte of receive buffer
-  
-  endTransaction();
-  #else
-
-  beginTransaction();
+  beginTransaction();  
   _SPI.transfer( R_REGISTER | ( REGISTER_MASK & reg ) );
   result = _SPI.transfer(0xff);
   endTransaction();
-
-  #endif
 
   return result;
 }
@@ -155,7 +158,7 @@ uint8_t RF24::read_register(uint8_t reg)
 uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
 {
   uint8_t status;
-
+  /*
   #if defined (RF24_LINUX) 
   beginTransaction();
   uint8_t * prx = spi_rxbuff;
@@ -170,14 +173,21 @@ uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
   status = *prx; // status is 1st byte of receive buffer
   endTransaction();
   #else
-
+  */
   beginTransaction();
-  status = _SPI.transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
+  _SPI.transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
   while ( len-- )
     _SPI.transfer(*buf++);
+
+  while( _SPI.busy() )
+    {
+      mcal::cpu::nop();
+    }
+
+  status = _SPI.recv();
   endTransaction();
 
-  #endif
+  //  #endif
 
   return status;
 }
@@ -187,7 +197,7 @@ uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
 uint8_t RF24::write_register(uint8_t reg, uint8_t value)
 {
   uint8_t status;
-
+  /*
   IF_SERIAL_DEBUG(printf_P(PSTR("write_register(%02x,%02x)\r\n"),reg,value));
 
   #if defined (RF24_LINUX)
@@ -201,10 +211,18 @@ uint8_t RF24::write_register(uint8_t reg, uint8_t value)
 	status = *prx++; // status is 1st byte of receive buffer
 	endTransaction();
   #else
-
+*/
   beginTransaction();
-  status = _SPI.transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
+  _SPI.transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
   _SPI.transfer(value);
+
+  while( _SPI.busy() )
+    {
+      mcal::cpu::nop();
+    }
+
+  status = _SPI.recv();
+
   endTransaction();
 
   #endif
@@ -221,7 +239,7 @@ uint8_t RF24::write_payload(const void* buf, uint8_t data_len, const uint8_t wri
 
    data_len = rf24_min(data_len, payload_size);
    uint8_t blank_len = dynamic_payloads_enabled ? 0 : payload_size - data_len;
-  
+   /*  
   //printf("[Writing %u bytes %u blanks]",data_len,blank_len);
   IF_SERIAL_DEBUG( printf("[Writing %u bytes %u blanks]\n",data_len,blank_len); );
   
@@ -243,18 +261,28 @@ uint8_t RF24::write_payload(const void* buf, uint8_t data_len, const uint8_t wri
 	endTransaction();
 
   #else
-
+   */
   beginTransaction();
-  status = _SPI.transfer( writeType );
+  _SPI.transfer( writeType );
+
   while ( data_len-- ) {
     _SPI.transfer(*current++);
   }
+
   while ( blank_len-- ) {
     _SPI.transfer(0);
   }  
+
+  while( _SPI.busy() )
+    {
+      mcal::cpu::nop();
+    }
+
+  status = _SPI.recv();
+
   endTransaction();
 
-  #endif
+  //  #endif
 
   return status;
 }
@@ -270,7 +298,7 @@ uint8_t RF24::read_payload(void* buf, uint8_t data_len)
   uint8_t blank_len = dynamic_payloads_enabled ? 0 : payload_size - data_len;
   
   //printf("[Reading %u bytes %u blanks]",data_len,blank_len);
-
+  /*
   IF_SERIAL_DEBUG( printf("[Reading %u bytes %u blanks]\n",data_len,blank_len); );
   
   #if defined (RF24_LINUX)
@@ -298,18 +326,26 @@ uint8_t RF24::read_payload(void* buf, uint8_t data_len)
     }
 	endTransaction();
   #else
-
+  */
   beginTransaction();
-  status = _SPI.transfer( R_RX_PAYLOAD );
+  _SPI.transfer( R_RX_PAYLOAD );
   while ( data_len-- ) {
     *current++ = _SPI.transfer(0xFF);
   }
   while ( blank_len-- ) {
     _SPI.transfer(0xff);
   }
+
+  while( _SPI.busy() )
+    {
+      mcal::cpu::nop();
+    }
+
+  status = _SPI.recv();
+
   endTransaction();
 
-  #endif
+  //  #endif
 
   return status;
 }
@@ -335,7 +371,15 @@ uint8_t RF24::spiTrans(uint8_t cmd){
   uint8_t status;
   
   beginTransaction();
-  status = _SPI.transfer( cmd );
+  _SPI.transfer( cmd );
+
+  while( _SPI.busy() )
+    {
+      mcal::cpu::nop();
+    }
+
+  status = _SPI.recv();
+
   endTransaction();
   
   return status;
@@ -571,7 +615,7 @@ void RF24::printDetails(void)
 
 bool RF24::begin(void)
 {
-
+ 
   uint8_t setup=0;
 
   #if defined (RF24_LINUX)

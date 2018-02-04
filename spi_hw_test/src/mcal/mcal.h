@@ -12,6 +12,7 @@
 
 #include <mcal_irq.h>
 #include <mcal_gpt.h>
+#include <mcal_port.h>
 #include <mcal_led.h>
 #include <mcal_spi.h>
 

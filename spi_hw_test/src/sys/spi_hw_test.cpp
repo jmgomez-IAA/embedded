@@ -9,15 +9,24 @@
 #ifndef _SPI_HW_TEST_EMBEDDED_2018_
 #define _SPI_HW_TEST_EMBEDDED_2018_
 
-#include <hal/hal.h>
 #include <mcal/mcal.h>
+#include <mcal_reg_access.h>
 #include <util/utility/util_time.h>
+#include <util/utility/util_mmap_device.h>
 
 namespace
 {
   // Define a convenient local 32-bit timer type.
   typedef util::timer<std::uint32_t> timer_type;
 }
+
+
+
+typedef mcal::port::port_pin<std::uint8_t,
+		     std::uint8_t,
+		     mcal::reg::portb,
+		     mcal::reg::bval2> portb3;
+
 
 int main()
 {
@@ -30,7 +39,7 @@ led_b1.toggle();
   {
     
     //    if (! mcal::spi::the_spi.busy())    
-
+    util::mmap_driver<portb3, 0x12U, 0x25U>::writeRegister();
     //    mcal::spi::the_spi.send(0xFF);
     mcal::spi::the_spi.send(0xE0);
     mcal::spi::the_spi.send(0x00);

@@ -51,26 +51,29 @@ typedef enum { RF24_CRC_DISABLED = 0, RF24_CRC_8, RF24_CRC_16 } rf24_crclength_e
 class RF24
 {
 private:
-#ifdef SOFTSPI
-  SoftSPI<SOFT_SPI_MISO_PIN, SOFT_SPI_MOSI_PIN, SOFT_SPI_SCK_PIN, SPI_MODE> spi;
-#elif defined (SPI_UART)
-  SPIUARTClass uspi;
-#endif
 
+  //<OUT
 #if defined (RF24_LINUX) || defined (XMEGA_D3) /* XMEGA can use SPI class */
   SPI spi;
 #endif
 #if defined (MRAA)
   GPIO gpio;
 #endif
+  //OUT >
 
+  //Define as mcal::port::
   uint16_t ce_pin; /**< "Chip Enable" pin, activates the RX or TX role */
+  //Define as mcal::port::
   uint16_t csn_pin; /**< SPI Chip select */
+
   uint16_t spi_speed; /**< SPI Bus Speed */
+
+  //< OUT SPI will do
 #if defined (RF24_LINUX) || defined (XMEGA_D3)
   uint8_t spi_rxbuff[32+1] ; //SPI receive buffer (payload max 32 bytes)
   uint8_t spi_txbuff[32+1] ; //SPI transmit buffer (payload max 32 bytes + 1 byte for the command)
 #endif  
+  //OUT >
   bool p_variant; /* False for RF24L01 and true for RF24L01P */
   uint8_t payload_size; /**< Fixed size of payloads */
   bool dynamic_payloads_enabled; /**< Whether dynamic payloads are enabled. */
@@ -329,7 +332,7 @@ s   *
   bool available(uint8_t* pipe_num);
 
   /**
-   * Check if the radio needs to be read. Can be used to prevent data loss
+    * Check if the radio needs to be read. Can be used to prevent data loss
    * @return True if all three 32-byte radio buffers are full
    */
   bool rxFifoFull();
