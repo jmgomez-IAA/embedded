@@ -19,8 +19,8 @@ CINCLUDES	= -Isrc -Isrc/mcal/atmega328p -I. -Iutil/STL/ -Isrc/hal/rf24
 
 #src/mcal/at85/mcal_cpu.cpp
 #bin/mcal_cpu.o
-SOURCES = src/mcal/mcal.cpp src/mcal/atmega328p/mcal_irq.cpp src/mcal/atmega328p/mcal_led.cpp src/mcal/atmega328p/mcal_port.cpp src/mcal/atmega328p/mcal_gpt.cpp src/mcal/atmega328p/mcal_spi.cpp src/sys/spi_hw_test.cpp #src/hal/rf24/hal_rf24.cpp
-OBJECTS = bin/mcal.o bin/mcal_irq.o bin/mcal_led.o bin/mcal_port.o bin/mcal_gpt.o bin/mcal_spi.o bin/spi_hw_test.o # bin/hal_rf24.o
+SOURCES = src/mcal/mcal.cpp src/mcal/atmega328p/mcal_irq.cpp  src/mcal/atmega328p/mcal_port.cpp src/mcal/atmega328p/mcal_gpt.cpp src/mcal/atmega328p/mcal_spi.cpp src/sys/spi_hw_test.cpp #src/hal/rf24/hal_rf24.cpp src/mcal/atmega328p/mcal_led.cpp
+OBJECTS = bin/mcal.o bin/mcal_irq.o  bin/mcal_port.o bin/mcal_gpt.o bin/mcal_spi.o bin/spi_hw_test.o # bin/hal_rf24.o bin/mcal_led.o
 
 all : spi_hw_test.elf
 

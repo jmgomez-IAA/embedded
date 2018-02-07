@@ -68,16 +68,16 @@ namespace mcal
       static constexpr addr_type pdir = port - 1U;
       static constexpr addr_type pinp = port - 2U;
     };
+ 
+    extern const port_pin<std::uint8_t,
+			  std::uint8_t,
+			  mcal::reg::portb,
+			  0x02U> portb2;
 
     extern const port_pin<std::uint8_t,
 			  std::uint8_t,
 			  mcal::reg::portb,
-			  mcal::reg::bval2> portb2;
-
-    extern const port_pin<std::uint8_t,
-			  std::uint8_t,
-			  mcal::reg::portd,
-			  mcal::reg::bval2> portd2;
+			  0x01U> portb1;
 
   }
 }

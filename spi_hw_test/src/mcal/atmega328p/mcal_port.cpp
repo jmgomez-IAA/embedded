@@ -14,10 +14,10 @@
 mcal::port::port_pin<std::uint8_t,
 		     std::uint8_t,
 		     mcal::reg::portb,
-		     mcal::reg::bval2> portb2;
+		     0x02U> portb2;
 
 mcal::port::port_pin<std::uint8_t,
 		     std::uint8_t,
-		     mcal::reg::portd,
-		     mcal::reg::bval2> portd2;
+		     mcal::reg::portb, 
+		     0x01U> portb1;
 

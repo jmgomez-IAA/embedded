@@ -11,27 +11,30 @@
 
 #include <cstdint>
 #include <mcal_spi.h>
+#include <mcal_cpu.h>
 
 namespace util
 {
-
-  template <typename port_pin_type,
-	    std::uint8_t address,
+ 
+  template <std::uint8_t address,
 	    std::uint8_t value>
   struct mmap_driver
   {
+
     static void writeRegister()
     {
-      port_pin_type::set_pin_low();
       mcal::spi::the_spi.send(address);
       mcal::spi::the_spi.send(value);
-      port_pin_type::set_pin_high();
+
+      while(  mcal::spi::the_spi.busy() )
+      {
+        mcal::cpu::nop();
+      }
     }
 
     static std::uint8_t readRegister()
     {
       std::uint8_t data_to_recv;
-      port_pin_type::set_pin_low();
       mcal::spi::the_spi.send(address);
       mcal::spi::the_spi.send(value);
 	
@@ -39,7 +42,6 @@ namespace util
 	mcal::spi::the_spi.recv(data_to_recv);
 	mcal::spi::the_spi.recv(data_to_recv);
       }
-      port_pin_type::set_pin_high();
       return data_to_recv;
     }    
   };
