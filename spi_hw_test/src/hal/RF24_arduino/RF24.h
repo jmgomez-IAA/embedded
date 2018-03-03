@@ -12,7 +12,7 @@
  * Class declaration for RF24 and helper enums
  */
 
-#ifndef __RF24_H__
+#ifndef __RF24___
 #define __RF24_H__
 
 #include "RF24_config.h"

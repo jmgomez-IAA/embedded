@@ -21,3 +21,14 @@ mcal::port::port_pin<std::uint8_t,
 		     mcal::reg::portb, 
 		     0x01U> portb1;
 
+mcal::port::port_pin<std::uint8_t,
+		     std::uint8_t,
+		     mcal::reg::portb,
+		     0x07U> portD7;
+
+mcal::port::port_pin<std::uint8_t,
+		     std::uint8_t,
+		     mcal::reg::portd,
+		     0x06U> portD6;
+
+

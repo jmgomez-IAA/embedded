@@ -9,24 +9,43 @@
 
 #include "hal_rf24.h"
 
-template <typename port_pin_type>
-hal::rf24::RF24<port_pin_type>::RF24();
 
-hal::rf24::RF24::RF24(std::uint8_t _cepin, std::uint8_t _cspin) : 
+template <typename csn_pin,
+	  typename ce_pin>
+hal::rf24::RF24<csn_pin, ce_pin>::RF24() : p_variant(false),
+					   payload_size(32), dynamic_payloads_enabled(false), 
+					   addr_width(5),csDelay(5)
+{
+
+  csn_pin::set_direction_output();
+  ce_pin::set_direction_output();
+
+  pipe0_reading_address[0]=0;
+
+}
+
+template <typename csn_pin,
+	  typename ce_pin>
+hal::rf24::RF24<csn_pin, ce_pin>::RF24(std::uint8_t _cepin, std::uint8_t _cspin) : 
   ce_pin(_cepin), csn_pin(_cspin), p_variant(false),
   payload_size(32), dynamic_payloads_enabled(false), 
   addr_width(5),csDelay(5)//,pipe0_reading_address(0)
 {
+  csn_pin::set_direction_output();
+  ce_pin::set_direction_output();
+
   pipe0_reading_address[0]=0;
+
 }
 
 //Begin the operation of the chip.
-template <typename port_pin_type>
-void hal::rf24::RF24<port_pin_type>::begin(void)
+template <typename csn_pin,
+	  typename ce_pin>
+void hal::rf24::RF24<csn_pin, ce_pin>::begin(void)
 {
   
   // Initialize pins. Maybe better on constructor!!! 
-  port_pin_type::set_direction_output(); //(ce_pin,OUTPUT);
+  //  port_pin_type::set_direction_output(); //(ce_pin,OUTPUT);
   // Must allow the radio time to settle else configuration bits will not necessarily stick.
   // This is actually only required following power up but some settling time also appears to
   // be required after resets too. For full coverage, we'll always assume the worst.
@@ -38,19 +57,22 @@ void hal::rf24::RF24<port_pin_type>::begin(void)
 
   // Reset NRF_CONFIG and enable 16-bit CRC.
   //  write_register( NRF_CONFIG, 0x0C ) ;
-  util::mmap_driver<mcal::port::portdb2, 
-		    std::uint8_t, 
-		    std::uint8_t,
-		    NRF_CONFIG,
+  csn_pin::set_pin_low();
+  util::mmap_driver<NRF_CONFIG,
 		    0x0CU>::write_register();
+  csn_pin::set_pin_high();
 
   // Set 1500uS (minimum for 32B payload in ESB@250KBPS) timeouts, to make testing a little easier
   // WARNING: If this is ever lowered, either 250KBS mode with AA is broken or maximum packet
   // sizes must never be used. See documentation for a more complete explanation.
-  //  setRetries(5,15);
-
+  constexpr conf::retries_timeout = (0x05U&0x0FU)<<ARD | (15U&0xf)<<ARC
+  //  setRetries(5,15); SETUP_RETR,
+  util::mmap_driver<SETUP_RETR,
+		    retries_timeout>::write_register();
   // Reset value is MAX
-  //setPALevel( RF24_PA_MAX ) ;
+  //setPALevel( RF24_PA_MAX ) ;//Comentado en el original.
+  //  constexpr conf::pa_level = (le
+  //  util::mmap_driver<RF_SETUP,0>::read_register();
 
   // check for connected module and if this is a p nRF24l01 variant
   //

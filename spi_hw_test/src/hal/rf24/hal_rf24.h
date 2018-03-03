@@ -31,8 +31,11 @@ namespace hal
      * Driver for nRF24L01(+) 2.4GHz Wireless Transceiver
      * Uses the SPI module to communicate.
      * Uses the Port Module to manage pins.
+     * CE activates de Tx or Rx module. <pin D6 arduino>
+     * CSN SPI Chip Select Enable <pin D7 arduino>
      */
-    template <typename port_pin_type>
+    template <typename csn_pin,
+	      typename ce_pin>
     class RF24
     {
     private:
@@ -52,11 +55,10 @@ namespace hal
       std::uint8_t csDelay;
 
 //typedef util::timer<std::uint_fast16_t> timer_type;
-typedef util::timer<std::uint32_t> timer_type;
+      typedef util::timer<std::uint32_t> timer_type;
       timer_type        driver_wait;
 
-
-    public:
+    public:n
       RF24();
       RF24(std::uint8_t _cepin, std::uint8_t _cspin);
 
