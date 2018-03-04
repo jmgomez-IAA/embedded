@@ -24,8 +24,12 @@ int main()
   // Initialize the mcal.
   mcal::init();
 
-  constexpr std::array<std::uint8_t, 7U> my_array{
-    { 'h', 'o', 'o', 'l', 'a', '\n', '\r' }
+  constexpr std::array<std::uint8_t, 3U> my_array{
+    { 'A', 'T'}
+  };
+
+  constexpr std::array<std::uint8_t, 9U> my_verr{
+    { 'A', 'T', 'o', '+', 'V', 'E', 'R', 'R', '?'}
   };
 
   for(;;)
@@ -40,12 +44,14 @@ int main()
 	// Receive the data.
         mcal::usart::the_usart.recv(byte_to_send);
 	// Transmit the test message
-	mcal::usart::the_usart.send(byte_to_send);
+	mcal::usart::the_usart.send(byte_to_send);	
       }
     else
       {
 	//std::string msg ("Test message");
 	mcal::usart::the_usart.send_n(my_array.begin(), my_array.end());
+	//	timer_type::blocking_delay(timer_type::seconds(1U));
+	//	mcal::usart::the_usart.send_n(my_verr.begin(), my_verr.end());
       }
 
     // Wait 1 second in a blocking delay.

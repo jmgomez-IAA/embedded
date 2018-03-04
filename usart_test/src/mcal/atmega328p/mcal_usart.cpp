@@ -22,7 +22,9 @@ void mcal::usart::init(const config_type*)
   //  constexpr std::uint8_t reload_value_low = mcal::usart::baud_reload_value &0x00FF;
   // Change to templates parameters
   constexpr std::uint8_t reload_value_high = 0U;
-  constexpr std::uint8_t reload_value_low = 51U;
+  //constexpr std::uint8_t reload_value_low = 51U;
+  //constexpr std::uint8_t reload_value_low = 103U;
+  constexpr std::uint8_t reload_value_low = 12U;
 
   // Set baud rate 
   mcal::reg::access<std::uint8_t,
@@ -75,42 +77,6 @@ bool mcal::usart::usart_communication::recv(std::uint8_t& byte_to_recv)
   return true;
 }
 
-template<typename recv_iterator_type>
-bool mcal::usart::usart_communication::recv_n(recv_iterator_type first,
-					      size_type count)
-{
-  const size_type count_to_recv = (std::min)(count, recv_ready());
-
-  recv_iterator_type last = first + count_to_recv;
-
-  bool recv_result = true;
-
-  while(first != last)
-    {
-      std::uint8_t byte_to_recv;
-
-      recv_result &= recv(byte_to_recv);
-
-      typedef typename
-	std::iterator_traits<recv_iterator_type>::value_type
-	recv_value_type;
-
-      *first = recv_value_type(byte_to_recv);
-
-      ++first;
-    }
-
-  return recv_result;
-}
-
-template<typename recv_iterator_type>
-bool recv_n(recv_iterator_type first, recv_iterator_type last)
-{
-  const mcal::usart::size_type count_to_recv = mcal::usart::size_type(std::distance(first, last));
-
-  return recv_n(first, count_to_recv);
-}
-
 bool mcal::usart::usart_communication::send(const std::uint8_t byte_to_send)
 {
   
@@ -158,7 +124,7 @@ void __vector_19(void)
     }
   else
     {
-const std::uint8_t byte_to_send = mcal::usart::the_usart.send_buffer.out();
+      const std::uint8_t byte_to_send = mcal::usart::the_usart.send_buffer.out();
       mcal::reg::dynamic_access<std::uint8_t, std::uint8_t>::reg_set(
 								     mcal::reg::udr0,
 								     byte_to_send);

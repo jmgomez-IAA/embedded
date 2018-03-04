@@ -9,7 +9,7 @@
  */
 
 /**
- * System clock 1 MHz.
+ * System clock 8 MHz.
  */
 
 #include <avr/interrupt.h>
@@ -38,7 +38,7 @@ void mcal::gpt::init(const config_type*)
     // Enable the timer0 overflow interrupt.
     mcal::reg::access<std::uint8_t, std::uint8_t, mcal::reg::timsk0, 0x01U>::reg_set();
 
-    // Set the timer0 clock source to f_osc/8 = 2MHz and begin counting.
+    // Set the timer0 clock source to f_osc/8 = 1MHz and begin counting.
     mcal::reg::access<std::uint8_t, std::uint8_t, mcal::reg::tccr0b, 0x02U>::reg_set();
 
     // Set the is-initialized indication flag.
@@ -53,7 +53,8 @@ ISR(TIMER0_OVF_vect)
 //void TIMER0_OVF0()
 {
   // Increment the 32-bit system tick with 0x80, representing 128 microseconds.
-  system_tick += static_cast<std::uint8_t>(0x80U);
+  //system_tick += static_cast<std::uint8_t>(0x80U);
+  system_tick += static_cast<std::uint8_t>(0xFFU);
 }
 
 //Provide the function get_time_elapsed used by chrono.
