@@ -10,6 +10,7 @@
 #ifndef _MCAL_USART_EMBEDDED_H_
 #define _MCAL_USART_EMBEDDED_H_
 
+#include <algorithm>
 #include <cstdint>
 #include <cstddef>
 #include <util/utility/util_circular_buffer.h>
@@ -57,6 +58,7 @@ namespace mcal
     typedef void config_type;
     typedef std::uint32_t value_type;
     typedef std::uint8_t* data_type;
+    typedef std::size_t size_type;
 
     void init(const config_type*);
     //    constexpr std::uint32_t F_CPU = 8000000UL; //0x7A1200UL; //
@@ -68,15 +70,48 @@ namespace mcal
     {
     public:
       typedef util::circular_buffer<std::uint8_t, 16U> buffer_type;
-      typedef std::size_t size_type;
+      //typedef util::circular_buffer<std::uint8_t, 16U> data_type;
+
       usart_communication() : send_is_active(false){};
       ~usart_communication() {};
 
       // The virtual communication interface.
       bool send(const std::uint8_t byte_to_send);
-      std::uint8_t recv_ready() const;
-      //Blocking receive may be usefull
+      //      bool send(const data_type& data_to_send);
+      
+      template<typename send_iterator_type>
+      bool send_n(send_iterator_type first, send_iterator_type last)
+      {
+	bool send_result = true;
+
+	while(first != last)
+	  {
+	    typedef typename
+	      std::iterator_traits<send_iterator_type>::value_type
+	      send_value_type;
+
+	    const send_value_type value(*first);
+
+	    send_result &= send(std::uint8_t(value));
+
+	    ++first;
+	  }
+
+	return send_result;
+      }
+
+
+      size_type recv_ready() const;
+
       bool recv(std::uint8_t& byte_to_recv);
+      //      bool recv(data_type& data_to_recv);
+
+      //Blocking receive may be usefull
+      template<typename recv_iterator_type>
+      bool recv_n(recv_iterator_type first, size_type count);
+
+      template<typename recv_iterator_type>
+      bool recv_n(recv_iterator_type first, recv_iterator_type last);
 
       
       friend void ::__vector_18(void); 

@@ -1,14 +1,13 @@
-﻿
-//four modes of clock operation: Normal asynchronous, Double Speed asynchronous, Master synchronous and Slave synchronous mode
-
-/**
+﻿/**
  * @file mcal_usart.cpp
  * @brief USART module for ATMega328p abstraction layer.
  * @description Provides functions to initialize and 
- * control the usart module of the SPI module of ATMega328p.
+ * control the usart module of the ATMega328p.
  * @author Juan Manuel Gomez Lopez <jmgomez@iaa.es>
  * @copyright 
  */
+
+//four modes of clock operation: Normal asynchronous, Double Speed asynchronous, Master synchronous and Slave synchronous mode
 
 #include "mcal_usart.h"
 #include <mcal_reg_access.h>
@@ -21,7 +20,7 @@ void mcal::usart::init(const config_type*)
   
   //constexpr std::uint8_t reload_value_high = mcal::usart::baud_reload_value >>8;
   //  constexpr std::uint8_t reload_value_low = mcal::usart::baud_reload_value &0x00FF;
-
+  // Change to templates parameters
   constexpr std::uint8_t reload_value_high = 0U;
   constexpr std::uint8_t reload_value_low = 51U;
 
@@ -60,10 +59,10 @@ void mcal::usart::init(const config_type*)
                       frame_format_mask>::reg_set();
 }
 
-std::uint8_t mcal::usart::usart_communication::recv_ready() const
+mcal::usart::size_type mcal::usart::usart_communication::recv_ready() const
 {
 
-const std::uint8_t count = recv_buffer.size();
+  const mcal::usart::size_type count = recv_buffer.size();
 
   return count;
 }
@@ -76,10 +75,46 @@ bool mcal::usart::usart_communication::recv(std::uint8_t& byte_to_recv)
   return true;
 }
 
+template<typename recv_iterator_type>
+bool mcal::usart::usart_communication::recv_n(recv_iterator_type first,
+					      size_type count)
+{
+  const size_type count_to_recv = (std::min)(count, recv_ready());
+
+  recv_iterator_type last = first + count_to_recv;
+
+  bool recv_result = true;
+
+  while(first != last)
+    {
+      std::uint8_t byte_to_recv;
+
+      recv_result &= recv(byte_to_recv);
+
+      typedef typename
+	std::iterator_traits<recv_iterator_type>::value_type
+	recv_value_type;
+
+      *first = recv_value_type(byte_to_recv);
+
+      ++first;
+    }
+
+  return recv_result;
+}
+
+template<typename recv_iterator_type>
+bool recv_n(recv_iterator_type first, recv_iterator_type last)
+{
+  const mcal::usart::size_type count_to_recv = mcal::usart::size_type(std::distance(first, last));
+
+  return recv_n(first, count_to_recv);
+}
+
 bool mcal::usart::usart_communication::send(const std::uint8_t byte_to_send)
 {
   
-/* Wait for empty transmit buffer */
+  /* Wait for empty transmit buffer */
   if ( send_is_active == false )
     {
       //disable_rx_tx_interrupt();
