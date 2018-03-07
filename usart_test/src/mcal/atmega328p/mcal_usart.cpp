@@ -15,6 +15,37 @@
 
 mcal::usart::usart_communication mcal::usart::the_usart;
 
+namespace 
+{
+  void enable_tx_rx_interrupt()
+  {
+
+    constexpr std::uint8_t tx_rx_enable_mask =  mcal::reg::bval7
+      | mcal::reg::bval6
+      | mcal::reg::bval5;
+
+    // Enable the usart interrupt
+    mcal::reg::access<std::uint8_t,
+                      std::uint8_t,
+                      mcal::reg::ucsr0b,
+                      tx_rx_enable_mask>::reg_or();
+  }
+
+  void disable_tx_rx_interrupt()
+  {
+
+    constexpr std::uint8_t tx_rx_disable_mask =  ~static_cast<uint8_t>(mcal::reg::bval7
+								       | mcal::reg::bval6						 | mcal::reg::bval5);
+
+    // Disable the usart interrupt
+    mcal::reg::access<std::uint8_t,
+                      std::uint8_t,
+                      mcal::reg::ucsr0b,
+                      tx_rx_disable_mask>::reg_and();
+
+  }
+}
+
 void mcal::usart::init(const config_type*)
 {
   
@@ -23,8 +54,8 @@ void mcal::usart::init(const config_type*)
   // Change to templates parameters
   constexpr std::uint8_t reload_value_high = 0U;
   //constexpr std::uint8_t reload_value_low = 51U;
-  //constexpr std::uint8_t reload_value_low = 103U;
-  constexpr std::uint8_t reload_value_low = 12U;
+  constexpr std::uint8_t reload_value_low = 103U;
+  //constexpr std::uint8_t reload_value_low = 12U;
 
   // Set baud rate 
   mcal::reg::access<std::uint8_t,
@@ -83,7 +114,7 @@ bool mcal::usart::usart_communication::send(const std::uint8_t byte_to_send)
   /* Wait for empty transmit buffer */
   if ( send_is_active == false )
     {
-      //disable_rx_tx_interrupt();
+      disable_tx_rx_interrupt();
       send_is_active = true;
 
       mcal::reg::dynamic_access<std::uint8_t, 
@@ -91,13 +122,14 @@ bool mcal::usart::usart_communication::send(const std::uint8_t byte_to_send)
 						       mcal::reg::udr0, 
 						       byte_to_send
 						       );
-      //    enable_rx_tx_interrupt();
+      enable_tx_rx_interrupt();
       return true;
     }
   else
     {
       send_buffer.in(byte_to_send);
-      return false;
+      enable_tx_rx_interrupt();
+      return false;       
     }
 }
 
@@ -115,19 +147,24 @@ void __vector_18(void)
 }
 
 //TX Data Register Empty
+// If data present on send_buffer, move to udr.
 void __vector_19(void)
 {
   
-  if ( mcal::usart::the_usart.send_buffer.empty() )
+  if ( mcal::usart::the_usart.send_buffer.empty() == false )
     {
-      mcal::usart::the_usart.send_is_active = false;
-    }
-  else
-    {
+      
       const std::uint8_t byte_to_send = mcal::usart::the_usart.send_buffer.out();
       mcal::reg::dynamic_access<std::uint8_t, std::uint8_t>::reg_set(
 								     mcal::reg::udr0,
 								     byte_to_send);
+
+      mcal::usart::the_usart.send_is_active = true;
+    }
+  else
+    {
+
+      mcal::usart::the_usart.send_is_active = false;
     }
 }
 

@@ -12,6 +12,7 @@
 #include <mcal/mcal.h>
 #include <util/utility/util_time.h>
 #include <array>
+#include <string>
 
 namespace
 {
@@ -32,6 +33,8 @@ int main()
     { 'A', 'T', 'o', '+', 'V', 'E', 'R', 'R', '?'}
   };
 
+  std::string str1("Hola");
+
   for(;;)
   {
 
@@ -49,7 +52,8 @@ int main()
     else
       {
 	//std::string msg ("Test message");
-	mcal::usart::the_usart.send_n(my_array.begin(), my_array.end());
+	//	mcal::usart::the_usart.send_n(my_array.begin(), my_array.end());
+	mcal::usart::the_usart.send_n(str1.begin(), str1.end());
 	//	timer_type::blocking_delay(timer_type::seconds(1U));
 	//	mcal::usart::the_usart.send_n(my_verr.begin(), my_verr.end());
       }
