@@ -53,9 +53,9 @@ void mcal::usart::init(const config_type*)
   //  constexpr std::uint8_t reload_value_low = mcal::usart::baud_reload_value &0x00FF;
   // Change to templates parameters
   constexpr std::uint8_t reload_value_high = 0U;
-  //constexpr std::uint8_t reload_value_low = 51U;
+  //  constexpr std::uint8_t reload_value_low = 51U;
   constexpr std::uint8_t reload_value_low = 103U;
-  //constexpr std::uint8_t reload_value_low = 12U;
+  //constexpr std::uint8_t reload_value_low = 26U;
 
   // Set baud rate 
   mcal::reg::access<std::uint8_t,

@@ -33,7 +33,9 @@ int main()
     { 'A', 'T', 'o', '+', 'V', 'E', 'R', 'R', '?'}
   };
 
-  std::string str1("Hola");
+  std::string str1("AT");
+  std::string str2("AT+?");
+  std::string str3("AT\r\n");
 
   for(;;)
   {
@@ -54,8 +56,14 @@ int main()
 	//std::string msg ("Test message");
 	//	mcal::usart::the_usart.send_n(my_array.begin(), my_array.end());
 	mcal::usart::the_usart.send_n(str1.begin(), str1.end());
-	//	timer_type::blocking_delay(timer_type::seconds(1U));
+	timer_type::blocking_delay(timer_type::seconds(1U));
 	//	mcal::usart::the_usart.send_n(my_verr.begin(), my_verr.end());
+	mcal::usart::the_usart.send_n(str2.begin(), str2.end());
+	timer_type::blocking_delay(timer_type::seconds(1U));
+
+	mcal::usart::the_usart.send_n(str3.begin(), str3.end());
+	timer_type::blocking_delay(timer_type::seconds(1U));
+
       }
 
     // Wait 1 second in a blocking delay.

@@ -53,8 +53,8 @@ ISR(TIMER0_OVF_vect)
 //void TIMER0_OVF0()
 {
   // Increment the 32-bit system tick with 0x80, representing 128 microseconds.
-  system_tick += static_cast<std::uint8_t>(0x80U);
-  //system_tick += static_cast<std::uint8_t>(0xFFU);
+  //system_tick += static_cast<std::uint8_t>(0x80U);
+  system_tick += static_cast<std::uint8_t>(0xFFU);
 }
 
 //Provide the function get_time_elapsed used by chrono.

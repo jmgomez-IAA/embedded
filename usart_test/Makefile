@@ -8,8 +8,8 @@ REMOVE 		= rm -f
 
 #CPU Specific flags.
 MCU 		= atmega328p
-#F_CPU 		= 8000000
-F_CPU		= 16000000
+F_CPU 		= 8000000
+#F_CPU		= 16000000
 
 #Compiler flags.
 CSTANDARD	= -std=c++11
@@ -58,8 +58,8 @@ info:
 
 flash :
 	echo "Flashing AVRDUDE: Locate Fuses to 1MHz clock."
-#	avrdude -P /dev/ttyUSB0 -b 57600 -c arduino -p m328p -U flash:w:bin/usart_hello_test.hex:i
-	avrdude -P /dev/ttyACM0 -b 115200 -c arduino -p m328p -U flash:w:bin/usart_hello_test.hex:i
+	avrdude -P /dev/ttyUSB0 -b 57600 -c arduino -p m328p -U flash:w:bin/usart_hello_test.hex:i
+#	avrdude -P /dev/ttyACM0 -b 115200 -c arduino -p m328p -U flash:w:bin/usart_hello_test.hex:i
 
 clean : 
 	rm bin/*
