@@ -54,6 +54,9 @@ bin/sys_start.o : src/sys/start/sys_start.cpp
 chapter02_03.elf : $(OBJECTS)
 	echo "Link     : objects to bin/chapter02_03.elf"
 	$(COMPILE) -x none -mrelax $(CFLAGS) $(CPPFLAGS) $(CINCLUDES) -Wl,--gc-sections  $(OBJECTS) -o bin/chapter02_03.elf
+#	avr-objdump -Pmem-usage app.elf
+	avr-size -C --mcu=attiny85 bin/chapter02_03.elf
+
 
 flash :
 	echo "Flashing AVRDUDE: Locate Fuses to 1MHz clock."
