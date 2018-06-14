@@ -8,3 +8,4 @@ Our primary goal is to come up with an architecture that:
     provides quick, easy and straightforward way of adding new messages to the protocol.
     has as little connection as possible between the application level messages and wrapping transport data, which allows easy substitution of the latter if need arises.
 
+ provide all the necessary types and classes, usage of which will make the implementation of the required communication protocol easy, quick and straightforward process of using simple declarative statements. 
