@@ -1,0 +1,32 @@
+@startuml
+abstract class MessageBase <typename TReadIter, typename TWriteIter>{
+  __ private __
+  == public ==
+  + void write(...) const 
+  + void read(...) const 
+  -- protected --
+  - virtual ErrorStatus writeImpl(...) const = 0;
+  - virtual ErrorStatus readImpl(...) const = 0;
+}
+
+class Message1 <typename TReadIter, typename TWriteIter>{
+
+  ==public==
+  + void write(...) const
+  --protected--
+  - virtual ErrorStatus writeImpl() const override {....}
+  - virtual ErrorStatus readImpl(...) override {...}; 
+}
+
+class Message2 <typename TReadIter, typename TWriteIter>{
+
+  ==public==
+  + void write(...) const
+  --protected--
+  - virtual ErrorStatus writeImpl() const override {....}
+  - virtual ErrorStatus readImpl(...) override {...}; 
+}
+
+MessageBase <|- Message1
+MessageBase <|- Message2
+@enduml
