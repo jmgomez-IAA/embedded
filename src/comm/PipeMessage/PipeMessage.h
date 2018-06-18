@@ -11,7 +11,6 @@
 
 
 #include <iostream>
-#include <tuple>
 
 #include "../Message.h"
 
@@ -23,36 +22,37 @@ namespace comm
 
     void init(void *void_ptr);
 
-    template <typename TReadIter, typename TWriteIter>
-    class PipeMessage : public Message<TReadIter, TWriteIter>
+    class PipeMessage : public Message
     {
-      using Base = Message<TReadIterm, TWriteIter>;
-      using Channel = std::vector<std::uint8_t>;
 
     public:
-      using Base::ReadIterator;
-      using Base::WriteIterator;
 
-    protected:
+      PipeMessage(std::uint32_t id, std::int32_t t, std::uint32_t h): MsgId(id), temp(t), humidity(h){};
+
+      void ShowFields()
+      {
+	std::cout << "M: " << MsgId << "T: " << temp << "H: " << humidity << std::endl;
+      }
+
+      ~PipeMessage() {MsgId=0; temp=0; humidity=0;};
+
       /**
-       * @brief Write a Message
+       * @brief Read a Message
        * @param Message to tran, ITerator, etc.
        * @return Communication Status, ErrorStatus enum.        
        */      
-      virtual comm::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) override 
+      virtual comm::ErrorStatus readImpl(std::vector<std::uint32_t> &channel, std::size_t len) override 
       {
+	MsgId = channel.front();
+	channel.erase(channel.begin());
 
-	//std::in32_t myId, myTemp, myHumidity;
-	std::int32_t val;
-	//char mychar;
-	//std::tie (myId, myTemp, myHumidity) = m_fields;  // unpack elements
-	//std::tie (std::ignore, std::ignore, myint, mychar) = bar;  // unpack (with ignore)
+	temp = channel.front();
+	channel.erase(channel.begin());
 
-	for(int i=0; i< len; ++i)
-	  {
-	    val = (*iter);
-	  }
-
+	humidity = channel.front();
+	channel.erase(channel.begin());
+	
+	return comm::ErrorStatus::Success;
       };
 
       /**
@@ -60,27 +60,33 @@ namespace comm
        * @param Message to transmit, ITerator, etc.
        * @return Communication Status, ErrorStatus enum.        
        */      
-      virtual comm::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const override 
+      virtual comm::ErrorStatus writeImpl(std::vector<std::uint32_t> &channel, std::size_t len) override 
       {
-	for(int i=0; i<len; ++i)
-	  {
-	    (*iter) = i;
-	    iter ++;
-	  }
+
+	channel.push_back(MsgId);
+	channel.push_back(temp);
+	channel.push_back(humidity);
+
+	return comm::ErrorStatus::Success;
+
       };
 
       /**
        * @brief Process the Message!!
        */
+      /*
       virtual comm::ErrorStatus dispatchImpl(Handler& handler) override
       {
 	//....
-	handler.handle(*this);
+	//handler.handle(*this);
+	
       };
-
+*/
     private:
       //The data in the message is Temperatura, Humidity and Others
-      std::tuple<std::uint32_t, std::uint32_t,std::uint32_t> m_fields;
+      std::uint32_t MsgId;
+      std::int32_t temp;
+      std::uint32_t humidity;
  
     };
 

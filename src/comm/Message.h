@@ -41,23 +41,20 @@ namespace comm
       msg.write(...);
     };
 */
-    template <typename TReadIter, typename TWriteIter>
+
     class Message
     {
     public:
 
-      using ReadIterator = TReadIter;
-      using WriteIterator = TWriteIter;
-      
       /**
        * @brief Read a Message from a received chunk.
        * @description Deserialize the message from the received chunk.
        * @param iter, is an iterator to traverse the chunk of data, each traits should be deserialized.
        * @return Communication Status, ErrorStatus enum.        
        */
-      ErrorStatus read(ReadIterator& iter, std::size_t len) 
+      ErrorStatus read( std::vector<std::uint32_t> &channel, std::size_t len) 
       {
-	return readImpl(iter, len);
+	return readImpl(channel, len);
       }
 
       /**
@@ -67,9 +64,9 @@ namespace comm
        * @param len, is the len of the message.
        * @return Communication Status, ErrorStatus enum.        
        */
-      ErrorStatus write(WriteIterator& iter, std::size_t len) const
-      {
-	return writeImpl(iter, len);
+      ErrorStatus write(std::vector<std::uint32_t> &channel, std::size_t len) 
+      { 
+	return writeImpl(channel, len);
       }
 
       /**
@@ -77,46 +74,18 @@ namespace comm
        * @param  handler is the object in charge of sending the me message to the appropiate function.
        * @return 
        */
+      /*
       void dispatch(Handler& handler)
       {
 	return dispatchImpl(handler);
       }
-
+*/
     protected:
-      virtual ErrorStatus readImpl(ReadIterator& iterm, std::size_t len) const = 0;
-      virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const = 0;      
-      virtual ErrorStatus dispatchImpl(Handler& handler) = 0;
-
-      template <typename T>
-      static T readData(ReadIterator& iter)
-      {
-	//channel.();
-	//iter.value();
-      }
-
-      template <std::size_t TSize, typename T>
-      static T readData(ReadIterator& iter)
-      {
-	//read custom size field from channel
-
-      }
-
-      template <typename T>
-      static void writeData(T value, WriteIterator& iter)
-      {
-	//channel.push_back(value);
-      }
-
-
-      template <std::size_t TSize, typename T>
-      static void writeData(T value, WriteIterator& iter)
-      {
-	//write custom size field to channel
-
-      }
-
+      virtual ErrorStatus readImpl(std::vector<std::uint32_t>& channel, std::size_t len)  = 0; 
+      virtual ErrorStatus writeImpl(std::vector<std::uint32_t>& channel, std::size_t len)  = 0;     
+ 
     private:
-      //std::vector<uint8_t,64> *channel;      
+
     };
 
   }

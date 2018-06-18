@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include <Message>
+//#include <Message>
 
 namespace comm
 {
@@ -10,7 +10,7 @@ namespace comm
   {
     std::vector<uint8_t> channel;
 
-    Message * processTransportData(std::vector<uint32_t>& chunk_of_data);
+    //  Message * processTransportData(std::vector<uint32_t>& chunk_of_data);
 
     void write(std::uint8_t value)
     {

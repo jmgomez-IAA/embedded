@@ -10,6 +10,7 @@
 
 
 //#include <Message.h>
+#include "./PipeMessage/PipeMessage.h"
 
 
 /*
@@ -25,11 +26,11 @@ msg->dispatch(handler);
 */
 
 // Type definition.
-using LinReadIter = const std::vector<std::uint32_t>::iterator;
-using LinWriteIter = std::back_insert_iterator<std_vector<std::uint32_t>>;
+//using LinReadIter = const std::vector<std::uint32_t>::iterator;
+//using LinWriteIter = std::back_insert_iterator<std::vector<std::uint32_t>>;
 
 
-using LinPipeMessage = PipeMessage<LinReadIter, LinWriteIter>;
+//using LinPipeMessage = PipeMessage<LinReadIter, LinWriteIter>;
 
 
 /**
@@ -43,8 +44,7 @@ int main()
   std::vector<std::uint32_t> input_buffer, output_buffer;
   //Iterador para recorrer los bufferes de datos.
   std::vector<std::uint32_t>::iterator ReadIterator;
-  std::back_insert_iterator<std::vector<std::uint32_t>> WriteIterator;
-
+  std::back_insert_iterator< std::vector<std::uint32_t> > WriteIterator(output_buffer);
 
   std::cout << "Test del canal: " << std::endl;
   for (int iter = 0; iter < 10; iter ++)
@@ -59,10 +59,29 @@ int main()
                   
     }
 
-  //Creamos el message
-  Message<ReadIterator, WriteIterator> msg;
-  
-  
+//Creamos el message
+using TReadIterator = std::vector<std::uint32_t>::iterator;
+using TWriteIterator = std::vector<std::uint32_t>::iterator;
+comm::msg::Message *p_mesg;
+comm::msg::PipeMessage mesg(1,3,10);
+
+mesg.ShowFields();
+
+
+comm::ErrorStatus ret;
+ret = mesg.write(output_buffer, 2);
+
+if (ret == comm::ErrorStatus::Success)
+  {
+std::cout << "Todo ok." << std::endl;
+}
+
+
+ret = mesg.read(output_buffer, 2);
+if (ret == comm::ErrorStatus::Success)
+{
+mesg.ShowFields();
+}
 
 
   /*
