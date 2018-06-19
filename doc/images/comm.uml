@@ -1,32 +1,59 @@
 @startuml
-abstract class MessageBase <typename TReadIter, typename TWriteIter>{
+
+skinparam class {
+	BackgroundColor White
+	ArrowColor Black
+	BorderColor Black
+}
+
+abstract class Message <typename TReadIter, typename TWriteIter>{
   __ private __
   == public ==
-  + void write(...) const 
-  + void read(...) const 
+  + ErrorStatus write(WriteIterator &) 
+  + ErrorStatus read(ReadIterator &) 
   -- protected --
-  - virtual ErrorStatus writeImpl(...) const = 0;
-  - virtual ErrorStatus readImpl(...) const = 0;
+  - virtual ErrorStatus writeImpl(WriteIterator&) = 0;
+  - virtual ErrorStatus readImpl(ReadIterator&) = 0;
 }
 
 class Message1 <typename TReadIter, typename TWriteIter>{
 
-  ==public==
-  + void write(...) const
-  --protected--
-  - virtual ErrorStatus writeImpl() const override {....}
-  - virtual ErrorStatus readImpl(...) override {...}; 
+  == public ==
+  + virtual ErrorStatus writeImpl(WriteIterator& )  override {....}
+  + virtual ErrorStatus readImpl(ReadIterator& ) override {...}; 
 }
 
 class Message2 <typename TReadIter, typename TWriteIter>{
 
-  ==public==
-  + void write(...) const
-  --protected--
-  - virtual ErrorStatus writeImpl() const override {....}
-  - virtual ErrorStatus readImpl(...) override {...}; 
+  == public ==
+  + virtual ErrorStatus writeImpl(WriteIterator&) override {....}
+  + virtual ErrorStatus readImpl(ReadIterator&) override {...}; 
 }
 
-MessageBase <|- Message1
-MessageBase <|- Message2
+
+class CommInterface<typename TRxBuffer, typename TTxBuffer>{
+
+  == public ==
+  + ErrorStatus transmit(WriteIterator &);
+  + ErrorStatus receive(ReadIterator &);
+  -- protected --
+  - virtual ErrorStatus receiveImpl(WriteIterator&) = 0;
+  - virtual ErrorStatus transmitImp(ReadIterator&) = 0;
+}
+
+
+class CommI2C<typename TRxBuffer, typename TTxBuffer>{
+
+  -- protected --
+  - virtual ErrorStatus receiveImpl(WriteIterator&) = 0;
+  - virtual ErrorStatus transmitImp(ReadIterator&) = 0;
+}
+
+
+Message -[Hidden]> CommInterface
+Message <|-- Message1
+Message <|-- Message2
+
+CommInterface <|-- CommI2C
+
 @enduml
