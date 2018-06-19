@@ -41,10 +41,13 @@ namespace comm
       msg.write(...);
     };
 */
-
+    template<typename TReadIter, typename TWriteIter>
     class Message
     {
     public:
+
+      using ReadIterator = TReadIter;  //std::vector<std::uint32_t>::iterator iter;
+      using WriteIterator = TWriteIter;
 
       /**
        * @brief Read a Message from a received chunk.
@@ -52,9 +55,9 @@ namespace comm
        * @param iter, is an iterator to traverse the chunk of data, each traits should be deserialized.
        * @return Communication Status, ErrorStatus enum.        
        */
-      ErrorStatus read( std::vector<std::uint32_t> &channel, std::size_t len) 
+      ErrorStatus read( ReadIterator& iter, std::size_t len) 
       {
-	return readImpl(channel, len);
+	return readImpl(iter, len);
       }
 
       /**
@@ -64,9 +67,9 @@ namespace comm
        * @param len, is the len of the message.
        * @return Communication Status, ErrorStatus enum.        
        */
-      ErrorStatus write(std::vector<std::uint32_t> &channel, std::size_t len) 
+      ErrorStatus write( WriteIterator& iter, std::size_t len) 
       { 
-	return writeImpl(channel, len);
+	return writeImpl(iter, len);
       }
 
       /**
@@ -81,11 +84,9 @@ namespace comm
       }
 */
     protected:
-      virtual ErrorStatus readImpl(std::vector<std::uint32_t>& channel, std::size_t len)  = 0; 
-      virtual ErrorStatus writeImpl(std::vector<std::uint32_t>& channel, std::size_t len)  = 0;     
+      virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t len)  = 0; 
+      virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) = 0;     
  
-    private:
-
     };
 
   }

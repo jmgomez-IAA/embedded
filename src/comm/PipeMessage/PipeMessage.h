@@ -22,10 +22,17 @@ namespace comm
 
     void init(void *void_ptr);
 
-    class PipeMessage : public Message
+    template<typename TReadIter, typename TWriteIter>
+    class PipeMessage : public Message<TReadIter, TWriteIter>
     {
 
     public:
+      //      using Base = Message<TReadIter,TWriteIter>;
+      //using ReadIterator = Base::ReadIterator;
+      //using WriteIterator = Base::WriteIterator;
+      using ReadIterator = TReadIter;
+      using WriteIterator = TWriteIter;
+
 
       PipeMessage(std::uint32_t id, std::int32_t t, std::uint32_t h): MsgId(id), temp(t), humidity(h){};
 
@@ -41,16 +48,22 @@ namespace comm
        * @param Message to tran, ITerator, etc.
        * @return Communication Status, ErrorStatus enum.        
        */      
-      virtual comm::ErrorStatus readImpl(std::vector<std::uint32_t> &channel, std::size_t len) override 
+      virtual comm::ErrorStatus readImpl(ReadIterator &iter, std::size_t len)  override 
       {
-	MsgId = channel.front();
-	channel.erase(channel.begin());
 
-	temp = channel.front();
-	channel.erase(channel.begin());
+	for(int i=0; i<len; ++i)
+	  {
+	    if (i==0)	     
+	      MsgId = static_cast<std::uint32_t>(*iter);
 
-	humidity = channel.front();
-	channel.erase(channel.begin());
+	    if (i==1)	     
+	      temp = static_cast<std::int32_t>(*iter);
+
+	    if (i==2)	     
+	      humidity = static_cast<std::int32_t>(*iter);
+
+	    iter ++;
+	  }
 	
 	return comm::ErrorStatus::Success;
       };
@@ -60,12 +73,15 @@ namespace comm
        * @param Message to transmit, ITerator, etc.
        * @return Communication Status, ErrorStatus enum.        
        */      
-      virtual comm::ErrorStatus writeImpl(std::vector<std::uint32_t> &channel, std::size_t len) override 
+      virtual comm::ErrorStatus writeImpl(WriteIterator &iter, std::size_t len) override 
       {
 
-	channel.push_back(MsgId);
-	channel.push_back(temp);
-	channel.push_back(humidity);
+	(*iter) = MsgId;
+	iter ++;
+        (*iter) = temp;
+	iter ++;
+        (*iter) = humidity;
+	iter++;
 
 	return comm::ErrorStatus::Success;
 
