@@ -5,9 +5,8 @@
  */
 
 #include <iostream>
+#include <memory>
 #include <if.h>
-
-
 
 //#include <Message.h>
 #include "./PipeMessage/PipeMessage.h"
@@ -59,40 +58,30 @@ int main()
                   
     }
 
-//Creamos el message
-using TReadIterator = std::vector<std::uint32_t>::iterator;
-using TWriteIterator = std::vector<std::uint32_t>::iterator;
-comm::msg::Message *p_mesg;
-comm::msg::PipeMessage mesg(1,3,10);
+  //Creamos el message
+  using TReadIterator = std::vector<std::uint32_t>::iterator;
+  using TWriteIterator = std::vector<std::uint32_t>::iterator;
+  //std::unique_ptr<comm::msg::Message> pmesg = comm::msg::PipeMessage mesg(1,3,10);
+  //  std::unique_ptr<comm::msg::Message> pmesg = std::make_unique<comm::msg::PipeMessage>(1,3,10);
+  comm::msg::PipeMessage mesg(1,3,10);
+  comm::msg::Message *pmesg = &mesg;
 
-mesg.ShowFields();
+  //mesg.ShowFields();
 
+  comm::ErrorStatus ret;
+  ret = pmesg->write(output_buffer, 2);
 
-comm::ErrorStatus ret;
-ret = mesg.write(output_buffer, 2);
-
-if (ret == comm::ErrorStatus::Success)
-  {
-std::cout << "Todo ok." << std::endl;
-}
-
-
-ret = mesg.read(output_buffer, 2);
-if (ret == comm::ErrorStatus::Success)
-{
-mesg.ShowFields();
-}
+  if (ret == comm::ErrorStatus::Success)
+    {
+      std::cout << "Todo ok." << std::endl;
+    }
 
 
-  /*
-  //Definitions of our data, transmit buffers.
-  std::vector<std::uint8_t> outBuf;
-  LinWriteIter iter = std::back_inserter(outBuf);
+  ret = pmesg->read(output_buffer, 2);
+  if (ret == comm::ErrorStatus::Success)
+    {
+      //  mesg.ShowFields();
+      std::cout << "Todo Ok 2." << std::endl;
+    }
 
-  LinPipeMessage msg;
-
-  msg.write(iter, outBuf.max_size());
-  auto writtenCount = outBuf.size();
-
-*/
 }
